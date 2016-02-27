@@ -13,7 +13,8 @@ import (
 )
 
 var (
-    grabPaste *pgx.PreparedStatement
+    grabPasteById *pgx.PreparedStatement
+    insertPaste *pgx.PreparedStatement
     tmpl = template.Must(template.ParseFiles("templates/index.html"))
     db *pgx.ConnPool
 
@@ -28,19 +29,42 @@ func Index(ctx *fasthttp.RequestCtx, _ fasthttprouter.Params) {
 }
 
 func Save(ctx *fasthttp.RequestCtx, ps fasthttprouter.Params) {
-    fmt.Println(string(ctx.FormValue("pastearea")))
-    ctx.Redirect("/", 302)
+    randId := generateRandomId(idNumChars, idAlphabet)
+    paste := string(ctx.FormValue("pastearea"))
+
+    txn, err := db.Begin()
+    if err != nil {
+        log.Fatalf("Error starting db: %s", err)
+    }
+
+    if _, err := txn.Exec("insertPaste", randId, paste); err != nil {
+        log.Fatalf("Error inserting new paste: %s", err)
+    }
+
+    if err = txn.Commit(); err != nil {
+        log.Fatalf("Error when committing new paste: %s", err)
+    }
+
+    ctx.Redirect("/" + randId, 302)
 }
 
 func GrabPaste(ctx *fasthttp.RequestCtx, ps fasthttprouter.Params) {
+    pasteId := ps.ByName("paste_id")
 
+    var pasteText string
+
+    if err := db.QueryRow("grabPasteById", pasteId).Scan(&pasteText); err != nil {
+        log.Fatalf("Error grabbing paste: %s", err)
+    }
+
+    fmt.Fprint(ctx, pasteText)
 }
 
 func main() {
     rand.Seed(time.Now().UnixNano())
     var err error
 
-    if db, err = initDatabase("localhost", "postgres", "postgres", "pastemin", 5432, 4); err != nil {
+    if db, err = initDatabase("localhost", "postgres", "postgres", "pastemin", 5432, 256); err != nil {
         log.Fatalf("Error opening database: %s", err)
     }
 
@@ -49,7 +73,7 @@ func main() {
     router.GET("/:paste_id", GrabPaste)
     router.POST("/save", Save)
 
-    // rows, err := db.Query("grabPaste")
+    // rows, err := db.Query("grabPasteById")
 
     fmt.Println("Listening on localhost:8080")
     log.Fatal(fasthttp.ListenAndServe(":8080", router.Handler))
@@ -86,9 +110,14 @@ func initDatabase(dbHost string, dbUser string, dbPass string, dbName string, db
 
     var err error
     config.AfterConnect = func(conn *pgx.Conn) error {
-        grabPaste, err = conn.Prepare("grabPaste", "SELECT * FROM pastes WHERE id = $1")
+        grabPasteById, err = conn.Prepare("grabPasteById", "SELECT paste FROM pastes WHERE id = $1")
         if err != nil {
             log.Fatalf("Error when preparing statement grabPaste: %s", err)
+        }
+
+        insertPaste, err = conn.Prepare("insertPaste", "INSERT INTO pastes(id, paste) VALUES($1, $2)")
+        if err != nil {
+            log.Fatalf("Error when preparing statement grabPasteById: %s", err)
         }
 
         // Disable synchronous commit for the current db connection
