@@ -102,8 +102,6 @@ func initDatabase(dbHost string, dbUser string, dbPass string, dbName string, db
         return nil
     }
 
-    fmt.Println("--------------------------------------------------------------------------------------------")
-
     connPool, err := pgx.NewConnPool(config)
     if err != nil {
         successOrFailure = "FAILED"
@@ -111,8 +109,6 @@ func initDatabase(dbHost string, dbUser string, dbPass string, dbName string, db
     } else {
         fmt.Println("Connecting to database ", dbName, " as user ", dbUser, ": ", successOrFailure)
     }
-
-    fmt.Println("--------------------------------------------------------------------------------------------")
 
     return connPool, err
 }
