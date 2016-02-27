@@ -1,0 +1,36 @@
+<html>
+    <head>
+        <style>
+            html {
+                font-size: 16px;
+                font-family: monospace;
+            }
+            body {
+                max-width: 680px;
+                margin: 20px auto;
+            }
+            textarea {
+                font-size: 16px;
+                font-family: monospace;
+                width: 100%;
+                min-height: 500px;
+                border-radius: 3px;
+                border-color: #777;
+                padding: 10px;
+            }
+            input {
+                width: 200px;
+                height: 100px;
+            }
+        </style>
+    </head>
+    <body>
+        <p>pastemin</p>
+        <form action="/save" method="POST">
+            <textarea name="pastearea" placeholder="Paste your text or code here."></textarea>
+            <div>
+                <input type="submit" value="Submit"></input>
+            </div>
+        </form>
+    </body>
+</html>
