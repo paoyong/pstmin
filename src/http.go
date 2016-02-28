@@ -8,6 +8,7 @@ import (
     "time"
     "io/ioutil"
     "encoding/json"
+    "strconv"
 
     "github.com/buaazp/fasthttprouter"
     "github.com/jackc/pgx"
@@ -15,10 +16,11 @@ import (
 )
 
 type Configuration struct {
-    DBUser     string `json:"db_user"`
-    DBPass     string `json:"db_pass"`
-    DBName     string `json:"db_name"`
-    DBPort     string `json:"db_port"`
+    DBHost      string `json:"db_host"`
+    DBUser      string  `json:"db_user"`
+    DBPass      string  `json:"db_pass"`
+    DBName      string  `json:"db_name"`
+    DBPort      string  `json:"db_port"`
 }
 
 var (
@@ -44,7 +46,8 @@ func main() {
         fmt.Println("Error decoding config file", err)
     }
 
-    if db, err = initDatabase(config.DBHost, config.DBUser, config.DBPass, config.DBName, 5432, 256); err != nil {
+    port, err := strconv.ParseUint(config.DBPort, 10, 16)
+    if db, err = initDatabase(config.DBHost, config.DBUser, config.DBPass, config.DBName, uint16(port), 256); err != nil {
         log.Fatalf("Error opening database: %s", err)
     }
 
@@ -84,12 +87,16 @@ func Save(ctx *fasthttp.RequestCtx, ps fasthttprouter.Params) {
 }
 
 func GrabPaste(ctx *fasthttp.RequestCtx, ps fasthttprouter.Params) {
+    var pasteText string
     pasteId := ps.ByName("paste_id")
 
-    var pasteText string
-
     if err := db.QueryRow("grabPasteById", pasteId).Scan(&pasteText); err != nil {
-        log.Fatalf("Error grabbing paste: %s", err)
+        if err.Error() == "no rows in result set" {
+            ctx.SetStatusCode(fasthttp.StatusNotFound)
+            fmt.Fprintf(ctx, "Can't find that paste!")
+        } else {
+            log.Fatalf("Error grabbing paste: %s", err)
+        }
     }
 
     fmt.Fprint(ctx, pasteText)
