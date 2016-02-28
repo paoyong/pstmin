@@ -16,7 +16,7 @@ import (
 )
 
 type Configuration struct {
-    DBHost      string `json:"db_host"`
+    DBHost      string  `json:"db_host"`
     DBUser      string  `json:"db_user"`
     DBPass      string  `json:"db_pass"`
     DBName      string  `json:"db_name"`
