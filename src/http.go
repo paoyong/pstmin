@@ -136,8 +136,9 @@ func initDatabase(dbHost string, dbUser string, dbPass string, dbName string, db
 
     config.MaxConnections = maxConnectionsInPool
 
-    var err error
     config.AfterConnect = func(conn *pgx.Conn) error {
+        var err error
+
         grabPasteById, err = conn.Prepare("grabPasteById", "SELECT paste FROM pastes WHERE id = $1")
         if err != nil {
             log.Fatalf("Error when preparing statement grabPaste: %s", err)
