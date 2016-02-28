@@ -6,21 +6,60 @@ import (
     "log"
     "math/rand"
     "time"
+    "io/ioutil"
+    "encoding/json"
 
     "github.com/buaazp/fasthttprouter"
     "github.com/jackc/pgx"
     "github.com/valyala/fasthttp"
 )
 
+type Configuration struct {
+    db_user     string
+    db_pass     string
+    db_name     string
+    db_port     string
+}
+
 var (
     grabPasteById *pgx.PreparedStatement
     insertPaste *pgx.PreparedStatement
     tmpl = template.Must(template.ParseFiles("templates/index.html"))
     db *pgx.ConnPool
-
     idAlphabet = []rune("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
     idNumChars = 8
 )
+
+
+func main() {
+    rand.Seed(time.Now().UnixNano())
+
+    // Read config file
+    b, err := ioutil.ReadFile("config.json")
+    fmt.Println(string(b))
+    if err != nil {
+        log.Fatalf("Error reading config.json: %s", err)
+    }
+
+    configuration := Configuration{}
+
+    if err := json.Unmarshal(b, &configuration); err != nil {
+        fmt.Println("Error decoding config file", err)
+    }
+    fmt.Println(configuration)
+
+    if db, err = initDatabase("localhost", "postgres", "postgres", "pastemin", 5432, 256); err != nil {
+        log.Fatalf("Error opening database: %s", err)
+    }
+
+    router := fasthttprouter.New()
+    router.GET("/", Index)
+    router.GET("/:paste_id", GrabPaste)
+    router.POST("/save", Save)
+
+    fmt.Println("Listening on localhost:8080")
+    log.Fatal(fasthttp.ListenAndServe(":8080", router.Handler))
+}
 
 func Index(ctx *fasthttp.RequestCtx, _ fasthttprouter.Params) {
     ctx.SetContentType("text/html")
@@ -58,25 +97,6 @@ func GrabPaste(ctx *fasthttp.RequestCtx, ps fasthttprouter.Params) {
     }
 
     fmt.Fprint(ctx, pasteText)
-}
-
-func main() {
-    rand.Seed(time.Now().UnixNano())
-    var err error
-
-    if db, err = initDatabase("localhost", "postgres", "postgres", "pastemin", 5432, 256); err != nil {
-        log.Fatalf("Error opening database: %s", err)
-    }
-
-    router := fasthttprouter.New()
-    router.GET("/", Index)
-    router.GET("/:paste_id", GrabPaste)
-    router.POST("/save", Save)
-
-    // rows, err := db.Query("grabPasteById")
-
-    fmt.Println("Listening on localhost:8080")
-    log.Fatal(fasthttp.ListenAndServe(":8080", router.Handler))
 }
 
 /* generateRandomId
