@@ -27,6 +27,7 @@ var (
     grabPasteById *pgx.PreparedStatement
     insertPaste *pgx.PreparedStatement
     tmpl = template.Must(template.ParseFiles("templates/index.html"))
+    config = grabConfig("config.json")
     db *pgx.ConnPool
     idAlphabet = []rune("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
     idNumChars = 8
@@ -36,15 +37,6 @@ var (
 func main() {
     rand.Seed(time.Now().UnixNano())
 
-    // Parse config file into config object
-    config := Configuration{}
-    b, err := ioutil.ReadFile("config.json")
-    if err != nil {
-        log.Fatalf("Error reading config.json: %s", err)
-    }
-    if err := json.Unmarshal(b, &config); err != nil {
-        fmt.Println("Error decoding config file", err)
-    }
 
     port, err := strconv.ParseUint(config.DBPort, 10, 16)
     if db, err = initDatabase(config.DBHost, config.DBUser, config.DBPass, config.DBName, uint16(port), 256); err != nil {
@@ -58,6 +50,23 @@ func main() {
 
     fmt.Println("Listening on localhost:8080")
     log.Fatal(fasthttp.ListenAndServe(":8080", router.Handler))
+}
+
+func grabConfig(filename string) *Configuration {
+    c := Configuration{}
+
+    b, err := ioutil.ReadFile(filename)
+    if err != nil {
+        log.Fatalf("Error reading in config file: %s", err)
+    }
+
+    fmt.Println(b)
+
+    if err := json.Unmarshal(b, &c); err != nil {
+        log.Fatalf("Error decoding config file: %s", err)
+    }
+
+    return &c
 }
 
 func Index(ctx *fasthttp.RequestCtx, _ fasthttprouter.Params) {

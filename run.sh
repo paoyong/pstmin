@@ -1,3 +1,3 @@
 #!/bin/bash
 
-go run src/http.go &
+go run src/http.go
