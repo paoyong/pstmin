@@ -15,10 +15,10 @@ import (
 )
 
 type Configuration struct {
-    db_user     string
-    db_pass     string
-    db_name     string
-    db_port     string
+    DBUser     string `json:"db_user"`
+    DBPass     string `json:"db_pass"`
+    DBName     string `json:"db_name"`
+    DBPort     string `json:"db_port"`
 }
 
 var (
@@ -34,21 +34,17 @@ var (
 func main() {
     rand.Seed(time.Now().UnixNano())
 
-    // Read config file
+    // Parse config file into config object
+    config := Configuration{}
     b, err := ioutil.ReadFile("config.json")
-    fmt.Println(string(b))
     if err != nil {
         log.Fatalf("Error reading config.json: %s", err)
     }
-
-    configuration := Configuration{}
-
-    if err := json.Unmarshal(b, &configuration); err != nil {
+    if err := json.Unmarshal(b, &config); err != nil {
         fmt.Println("Error decoding config file", err)
     }
-    fmt.Println(configuration)
 
-    if db, err = initDatabase("localhost", "postgres", "postgres", "pastemin", 5432, 256); err != nil {
+    if db, err = initDatabase(config.DBHost, config.DBUser, config.DBPass, config.DBName, 5432, 256); err != nil {
         log.Fatalf("Error opening database: %s", err)
     }
 
