@@ -37,7 +37,6 @@ var (
 func main() {
     rand.Seed(time.Now().UnixNano())
 
-
     port, err := strconv.ParseUint(config.DBPort, 10, 16)
     if db, err = initDatabase(config.DBHost, config.DBUser, config.DBPass, config.DBName, uint16(port), 256); err != nil {
         log.Fatalf("Error opening database: %s", err)
@@ -48,7 +47,6 @@ func main() {
     router.GET("/:paste_id", GrabPaste)
     router.POST("/save", Save)
 
-    fmt.Println("Listening on localhost:8080")
     log.Fatal(fasthttp.ListenAndServe(":8080", router.Handler))
 }
 
@@ -59,8 +57,6 @@ func grabConfig(filename string) *Configuration {
     if err != nil {
         log.Fatalf("Error reading in config file: %s", err)
     }
-
-    fmt.Println(b)
 
     if err := json.Unmarshal(b, &c); err != nil {
         log.Fatalf("Error decoding config file: %s", err)
@@ -166,9 +162,9 @@ func initDatabase(dbHost string, dbUser string, dbPass string, dbName string, db
     connPool, err := pgx.NewConnPool(config)
     if err != nil {
         successOrFailure = "FAILED"
-        fmt.Println("Connecting to database ", dbName, " as user ", dbUser, " ", successOrFailure, ": \n ", err)
+        fmt.Println("Connecting to database", dbName, "as user", dbUser, successOrFailure, ": \n ", err)
     } else {
-        fmt.Println("Connecting to database ", dbName, " as user ", dbUser, ": ", successOrFailure)
+        fmt.Println("Connecting to database", dbName, "as user", dbUser, ":", successOrFailure)
     }
 
     return connPool, err
