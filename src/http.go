@@ -33,14 +33,8 @@ var (
     idNumChars = 8
 )
 
-
 func main() {
-    rand.Seed(time.Now().UnixNano())
-
-    port, err := strconv.ParseUint(config.DBPort, 10, 16)
-    if db, err = initDatabase(config.DBHost, config.DBUser, config.DBPass, config.DBName, uint16(port), 256); err != nil {
-        log.Fatalf("Error opening database: %s", err)
-    }
+    init()
 
     router := fasthttprouter.New()
     router.GET("/", Index)
@@ -48,6 +42,15 @@ func main() {
     router.POST("/save", Save)
 
     log.Fatal(fasthttp.ListenAndServe(":8080", router.Handler))
+}
+
+func init() {
+    rand.Seed(time.Now().UnixNano())
+
+    port, err := strconv.ParseUint(config.DBPort, 10, 16)
+    if db, err = initDatabase(config.DBHost, config.DBUser, config.DBPass, config.DBName, uint16(port), 256); err != nil {
+        log.Fatalf("Error opening database: %s", err)
+    }
 }
 
 func grabConfig(filename string) *Configuration {
