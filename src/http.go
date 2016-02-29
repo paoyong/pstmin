@@ -66,7 +66,7 @@ func grabConfig(filename string) *Configuration {
 }
 
 func Index(ctx *fasthttp.RequestCtx, _ fasthttprouter.Params) {
-    ctx.SetContentType("text/html")
+    ctx.SetContentType("text/html;charset:UTF-8")
     data := make([]string, 0, 10)
     tmpl.Execute(ctx, data)
 }
