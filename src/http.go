@@ -2,6 +2,7 @@ package main
 
 import (
     "fmt"
+    "html"
     "html/template"
     "log"
     "math/rand"
@@ -74,6 +75,8 @@ func Save(ctx *fasthttp.RequestCtx, ps fasthttprouter.Params) {
     randId := generateRandomId(idNumChars, idAlphabet)
     paste := string(ctx.FormValue("pastearea"))
 
+    fmt.Printf("%q\n", paste)
+
     txn, err := db.Begin()
     if err != nil {
         log.Fatalf("Error starting db: %s", err)
@@ -103,7 +106,8 @@ func GrabPaste(ctx *fasthttp.RequestCtx, ps fasthttprouter.Params) {
         }
     }
 
-    fmt.Fprint(ctx, pasteText)
+    unescapedPaste := html.UnescapeString(pasteText)
+    fmt.Fprint(ctx, unescapedPaste)
 }
 
 /* generateRandomId
