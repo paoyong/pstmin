@@ -17,11 +17,12 @@ import (
 )
 
 type Configuration struct {
-    DBHost      string  `json:"db_host"`
-    DBUser      string  `json:"db_user"`
-    DBPass      string  `json:"db_pass"`
-    DBName      string  `json:"db_name"`
-    DBPort      string  `json:"db_port"`
+    DBHost          string  `json:"db_host"`
+    DBUser          string  `json:"db_user"`
+    DBPass          string  `json:"db_pass"`
+    DBName          string  `json:"db_name"`
+    DBPort          string  `json:"db_port"`
+    MaxPasteSizeMB  float32 `json:"max_paste_size_megabytes"`
 }
 
 var (
@@ -74,23 +75,28 @@ func Index(ctx *fasthttp.RequestCtx, _ fasthttprouter.Params) {
 func Save(ctx *fasthttp.RequestCtx, ps fasthttprouter.Params) {
     randId := generateRandomId(idNumChars, idAlphabet)
     paste := string(ctx.FormValue("pastearea"))
+    pasteSize := len(paste);
+    pasteSizeMB := float32(pasteSize) / 1000000
 
-    fmt.Printf("%q\n", paste)
+    if pasteSizeMB > config.MaxPasteSizeMB {
+        ctx.SetStatusCode(fasthttp.StatusRequestEntityTooLarge)
+        fmt.Fprintf(ctx, "You tried to paste %.2f MB of text, which exceeds our limit of %.2f MB per paste.", pasteSizeMB, config.MaxPasteSizeMB)
+    } else {
+        txn, err := db.Begin()
+        if err != nil {
+            log.Fatalf("Error starting db: %s", err)
+        }
 
-    txn, err := db.Begin()
-    if err != nil {
-        log.Fatalf("Error starting db: %s", err)
+        if _, err := txn.Exec("insertPaste", randId, paste); err != nil {
+            log.Fatalf("Error inserting new paste: %s", err)
+        }
+
+        if err = txn.Commit(); err != nil {
+            log.Fatalf("Error when committing new paste: %s", err)
+        }
+
+        ctx.Redirect("/" + randId, 302)
     }
-
-    if _, err := txn.Exec("insertPaste", randId, paste); err != nil {
-        log.Fatalf("Error inserting new paste: %s", err)
-    }
-
-    if err = txn.Commit(); err != nil {
-        log.Fatalf("Error when committing new paste: %s", err)
-    }
-
-    ctx.Redirect("/" + randId, 302)
 }
 
 func GrabPaste(ctx *fasthttp.RequestCtx, ps fasthttprouter.Params) {

@@ -3,5 +3,6 @@
     "db_user": "",
     "db_pass": "",
     "db_name": "",
-    "db_port": ""
+    "db_port": "",
+    "max_paste_size_megabytes": "1"
 }
