@@ -4,18 +4,24 @@
         <meta charset="UTF-8">
         <title>pstmin</title>
         <style>
-            img {
-                width: 13px;
-                height: 16px;
-                margin-bottom: -3px;
-            }
-            html {
+            html, input {
                 font-size: 16px;
                 font-family: monospace;
                 color: #555;
             }
             strong {
                 color: #333;
+                font-size: 1.25rem;
+            }
+            img {
+                width: 16px;
+                height: 20px;
+                top: 2px;
+                margin-bottom: -3px;
+                margin-right: 4px;
+            }
+            form {
+                margin-top: 40px;
             }
             body {
                 max-width: 680px;
@@ -31,18 +37,28 @@
                 padding: 10px;
             }
             input[type="submit"] {
+                margin-bottom: 7px;
+                font-size: 0.75rem;
                 cursor: pointer;
+                float: right;
+                background: #33C3F0;
+                color: white;
+                padding: 7px 12px 7px 12px;
+                border: none;
+                border-radius: 4px;
+            }
+            input[type="submit"]:hover {
+                background: #31BDE8;
             }
         </style>
     </head>
     <body>
-        <strong><img src="http://i.imgur.com/QoMTspk.png"> pstmin</img></strong>
-        <p>minimalist pastebin alternative</p>
         <form action="/save" method="POST">
-            <textarea name="pastearea" placeholder="Paste your text or code here"></textarea>
             <p>
-                <input type="submit" value="Create new paste"></input>
+                <strong><img src="http://i.imgur.com/QoMTspk.png">pstmin</img></strong>
+                <input type="submit" value="CREATE NEW PASTE"></input>
             </p>
+            <textarea name="pastearea" placeholder="Paste your text or code here"></textarea>
         </form>
         <footer>
             Created by <a href="http://keithy.me">Keith Yong</a> - <a href="https://github.com/keithyong/pastemin">Github</a>
