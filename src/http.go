@@ -22,6 +22,7 @@ type Configuration struct {
     DBPass          string  `json:"db_pass"`
     DBName          string  `json:"db_name"`
     DBPort          string  `json:"db_port"`
+    Port            string  `json:"port"`
     MaxPasteSizeMB  float32 `json:"max_paste_size_megabytes"`
 }
 
@@ -48,7 +49,7 @@ func main() {
     router.GET("/:paste_id", GrabPaste)
     router.POST("/save", Save)
 
-    log.Fatal(fasthttp.ListenAndServe(":8080", router.Handler))
+    log.Fatal(fasthttp.ListenAndServe(":" + config.Port, router.Handler))
 }
 
 func grabConfig(filename string) *Configuration {

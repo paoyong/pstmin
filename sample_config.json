@@ -4,5 +4,6 @@
     "db_pass": "",
     "db_name": "",
     "db_port": "5432",
+    "port": "8080",
     "max_paste_size_megabytes": 0.5
 }
